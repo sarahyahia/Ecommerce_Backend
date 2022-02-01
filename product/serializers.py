@@ -11,8 +11,12 @@ class ProductSerializer(serializers.ModelSerializer):
             "get_absolute_url",
             "description",
             "price",
+            'status',
+            'category',
             "get_image",
-            "get_thumbnail"
+            "get_thumbnail",
+            'vendor',
+            'quantity_available'
         )
 
 class CategorySerializer(serializers.ModelSerializer):
