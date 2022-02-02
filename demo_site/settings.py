@@ -42,7 +42,9 @@ INSTALLED_APPS = [
     "corsheaders",
 
     'authentication',
-    'product'
+    'product',
+    'cart',
+    
 ]
 
 # SWAGGER_SETTINGS = {
