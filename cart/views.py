@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from .models import Order, OrderItem
+from product.models import Product
 from .serializers import OrderSerializer, MyOrderSerializer
 
 @api_view(['POST'])
@@ -22,7 +23,13 @@ def checkout(request):
     if serializer.is_valid():
         # stripe.api_key = settings.STRIPE_SECRET_KEY
         paid_amount = sum(item.get('quantity') * item.get('product').price for item in serializer.validated_data['items'])
-
+        for item in serializer.validated_data['items']:
+            product = item.get('product')
+            product.quantity_available = product.quantity_available - item.get('quantity')
+            if product.quantity_available == 0:
+                product.status = "sold out"
+            # import pdb; pdb.set_trace()
+            product.save()
         try:
             # charge = stripe.Charge.create(
             #     amount=int(paid_amount * 100),
