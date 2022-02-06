@@ -4,7 +4,11 @@ from io import BytesIO
 from django.core.files import File
 
 
-
+class Vendor(models.Model):
+    name = models.CharField(max_length=255, unique=True, primary_key=True)
+    def __str__(self):
+        return self.name
+    
 class Category(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True,null=True)
@@ -33,6 +37,7 @@ class Product(models.Model):
     description = models.TextField(blank=True, null=True)
     price = models.FloatField()
     vendor = models.CharField(max_length=255, default="vendor1")
+    # vendor = models.ForeignKey(vendor, related_name='vendor', on_delete=models.CASCADE)
     quantity_available = models.IntegerField(default=1)
     status = models.CharField(max_length=255,choices=STATUS_CHOICES, default='available')
     image = models.ImageField(upload_to='uploads/', blank=True, null=True)
