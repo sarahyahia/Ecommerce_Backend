@@ -30,7 +30,7 @@ class ProductDetail(APIView):
 
 class ProductsList(APIView):
     def get(self, request, format=None):
-        productsList= Product.objects.all()
+        productsList= Product.objects.all().order_by('slug')
         serializer = ProductSerializer(productsList, many=True)
         return Response(serializer.data)
         
@@ -60,7 +60,7 @@ def search(request):
     query = request.data.get('query', '')
 
     if query:
-        products = Product.objects.filter(Q(title__icontains=query) | Q(description__icontains=query))
+        products = Product.objects.filter(Q(title__icontains=query) | Q(description__icontains=query) | Q(category__title__icontains=query))
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
     else:

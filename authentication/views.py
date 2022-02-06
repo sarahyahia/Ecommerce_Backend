@@ -9,6 +9,8 @@ from django.contrib import auth
 import jwt
 from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
+from rest_framework import status, authentication, permissions
+
 
 
 
@@ -45,21 +47,22 @@ class LoginView(GenericAPIView):
         password = data.get('password', '')
         try:
             user = User.objects.get(username=username)
+            # Token.objects.create(user= user)
         except Exception as e:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'User not found', 'errors': str(e)}, status=status.HTTP_404_NOT_FOUND)
+        if not user.is_active:
+            return Response({'error': 'Account is deactivated.'}, status=status.HTTP_401_UNAUTHORIZED)
+
         user = auth.authenticate(username=username, password=password)
-        Token.objects.get_or_create(user= user)
-        
         if user:
             serializer = UserSerializer(user)
             data = {
                 'user': serializer.data, 
                 "token":user.auth_token.key, 
-                'msg':'you has been logged in successfully'
+                'msg':'you have logged in successfully'
             }
 
             return Response(data, status=status.HTTP_200_OK)
-
             # SEND RES
         return Response({'error': 'Wrong password'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -70,9 +73,23 @@ class LoginView(GenericAPIView):
 class LogoutView(GenericAPIView):
     def get(self, request, format=None):
         #delete the token to force a login
-        request.user.auth_token.delete() 
+        # request.user.auth_token.delete() 
         
         return Response(data={
             'success': True,
             'msg': 'logged out successfully'
         }, status=status.HTTP_200_OK)
+
+
+class DeactivateView(GenericAPIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+    def get(self, request, format=None):
+        user=request.user
+        
+        if user:
+            user.is_active = not(user.is_active)
+            user.save()
+            return Response(data={'msg':'Deactivated successfully'}, status=status.HTTP_200_OK)
+        return Response({'error': 'Not authorized'}, status=status.HTTP_401_UNAUTHORIZED)
+        
