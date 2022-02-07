@@ -85,9 +85,14 @@ class AddCategoryView(APIView):
     
     
 class EditCategoryView(APIView): 
-    def post(self, request, pk):
+    def get_object(self, category_slug):
         try:
-            category = Category.objects.get(pk=pk)
+            return Category.objects.get(slug=category_slug)
+        except Category.DoesNotExist:
+            raise Http404
+    def post(self, request, category_slug):
+        try:
+            category = self.get_object(category_slug)
             serializer = CategorySerializer(category, data=request.data)
             if serializer.is_valid():
                 serializer.save()
@@ -108,9 +113,14 @@ class EditCategoryView(APIView):
         
         
 class DeleteCategoryView(APIView):
-    def get(self, request, pk):
+    def get_object(self, category_slug):
         try:
-            category = Category.objects.get(pk=pk)
+            return Category.objects.get(slug=category_slug)
+        except Category.DoesNotExist:
+            raise Http404
+    def get(self, request, category_slug):
+        try:
+            category = self.get_object(category_slug)
             category.delete()
             return Response({'msg': 'The category has been deleted successfully.'},status=status.HTTP_204_NO_CONTENT)
         except:

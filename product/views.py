@@ -18,7 +18,7 @@ class StandardResultsSetPagination(PageNumberPagination):
 
 class LatestProductsList(APIView):
     def get(self, request, format=None):
-        products = Product.objects.all()[0:4]
+        products = Product.objects.all()[0:6]
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
 
@@ -41,7 +41,7 @@ class ProductsList(APIView):
     def get(self, request, format=None):
         productsList= Product.objects.all().order_by('slug')
         paginator = PageNumberPagination()
-        paginator.page_size = 5
+        paginator.page_size = 6
         result_page = paginator.paginate_queryset(productsList, request)
         serializer = ProductSerializer(result_page, many=True)
         return paginator.get_paginated_response(serializer.data)
