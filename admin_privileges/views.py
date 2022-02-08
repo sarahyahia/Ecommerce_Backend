@@ -34,6 +34,7 @@ class EditProductView(APIView):
     def post(self, request, pk):
         try:
             product = Product.objects.get(pk=pk)
+            print(request.data)
             serializer = ProductSerializer(product, data=request.data)
             if serializer.is_valid():
                 serializer.save()
@@ -137,7 +138,7 @@ class SalesByCategory(APIView):
             # import pdb; pdb.set_trace()
             # category = CategorySerializer(data=category)
             sales.append({'category' :category.title, 'sales' :sales_for_category})
-        return Response({'sales':sales},status=status.HTTP_200_OK)
+        return Response(sales,status=status.HTTP_200_OK)
 
 
 class SalesByVendor(APIView):
@@ -152,5 +153,5 @@ class SalesByVendor(APIView):
             sales_for_vendor = sum(item.quantity * item.product.price for item in items)
             # import pdb; pdb.set_trace()
             sales.append({'vendor' :vendor, 'sales' :sales_for_vendor})
-        return Response({'sales':sales},status=status.HTTP_200_OK)
+        return Response(sales,status=status.HTTP_200_OK)
         

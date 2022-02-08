@@ -7,6 +7,9 @@ from rest_framework.pagination import PageNumberPagination
 from .models import Product, Category
 from .serializers import ProductSerializer, CategorySerializer
 from django.db.models import Q
+from django_filters import rest_framework as filters
+from .filters import ProductFilter
+from rest_framework import generics
 
 
 
@@ -77,3 +80,12 @@ def search(request):
         return Response(serializer.data)
     else:
         return Response({"products": []})
+    
+
+
+class ProductFilterList(generics.ListAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_class = ProductFilter
+    

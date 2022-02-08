@@ -12,3 +12,4 @@ class CategorySerializer(serializers.ModelSerializer):
             'slug',
             'description',
         )
+
