@@ -82,3 +82,29 @@ class Product(models.Model):
         thumbnail = File(thumb_io, name=image.name)
 
         return thumbnail
+    
+    def remove_on_image_update(self):
+        try:
+            obj = Product.objects.get(id=self.id)
+        except Product.DoesNotExist:
+            return
+        if self.image and obj.image and self.image and obj.image != self.image:
+            storage, path = obj.image.storage, obj.image.path
+            obj.image.delete()
+            storage.delete(path)
+            
+
+    def delete(self, *args, **kwargs):
+        try:
+            storage, path = self.image.storage, self.image.path
+            storage.delete(path)
+            self.image.delete()
+            return super(Product, self).delete(*args, **kwargs)
+        except Product.DoesNotExist:
+            return super(Product, self).delete(*args, **kwargs)
+        
+
+    def save(self, *args, **kwargs):
+        # object is possibly being updated, if so, clean up.
+        self.remove_on_image_update()
+        return super(Product, self).save(*args, **kwargs)
