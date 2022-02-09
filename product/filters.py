@@ -3,6 +3,8 @@ from .models import Product
 
 
 class  ProductFilter(filters.FilterSet):
+    title = filters.CharFilter(lookup_expr='icontains')
+    vendor = filters.CharFilter(lookup_expr='icontains')  
     min_price = filters.NumberFilter(field_name="price", lookup_expr="gte")
     max_price = filters.NumberFilter(field_name="price", lookup_expr="lte")
 
@@ -19,3 +21,4 @@ class  ProductFilter(filters.FilterSet):
             'vendor',
             'quantity_available',
         )
+        
