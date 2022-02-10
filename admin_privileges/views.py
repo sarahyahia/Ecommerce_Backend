@@ -1,13 +1,14 @@
 from django.shortcuts import render
 from django.http import Http404
 from rest_framework.views import APIView
-from product.models import Product, Category
+from product.models import Product, Category, ProductChangesLog
 from product.serializers import ProductSerializer
 from cart.models import Order, OrderItem
 from .serializers import CategorySerializer
 from rest_framework.response import Response
 from rest_framework import status
-
+from django.forms.models import model_to_dict
+import json
 
 
 
@@ -34,10 +35,27 @@ class EditProductView(APIView):
     def post(self, request, pk):
         try:
             product = Product.objects.get(pk=pk)
-            print(request.data)
+            product_dict = model_to_dict(product)
+            product_dict['category_id'] = product_dict.pop('category')
+            old_product = Product(**product_dict)
+            image = product_dict['image']
+            thumbnail = product_dict['thumbnail']
+            Product_fields = [field.name for field in Product._meta.get_fields()]
+            print(product_dict)
             serializer = ProductSerializer(product, data=request.data)
             if serializer.is_valid():
                 serializer.save()
+                updated_product = Product.objects.get(pk=pk) 
+                differences = list(filter(lambda field: getattr(updated_product, field, None)!= getattr(old_product, field, None), Product_fields))
+                if differences:
+                    product_dict['image'] = json.dumps(str(product_dict['image']))
+                    product_dict['thumbnail'] = json.dumps(str(product_dict['thumbnail']))
+                    if image in differences:
+                        ProductChangesLog.objects.create(old_product=product_dict, differences= differences, admin= request.user, image=image, thumbnail=thumbnail)
+                    else:
+                        ProductChangesLog.objects.create(old_product=product_dict, differences= differences, admin= request.user)
+                import pdb; pdb.set_trace()
+                
                 return Response({
                     "success":True,
                     "msg":"The product has been modified successfuly",
@@ -58,6 +76,12 @@ class DeleteProductView(APIView):
     def get(self, request, pk):
         try:
             product = Product.objects.get(pk=pk)
+            product_dict = model_to_dict(product)
+            image = product_dict['image']
+            thumbnail = product_dict['thumbnail']
+            product_dict['image'] = json.dumps(str(product_dict['image']))
+            product_dict['thumbnail'] = json.dumps(str(product_dict['thumbnail']))
+            ProductChangesLog.objects.create(old_product=product_dict, admin= request.user, image=image, thumbnail=thumbnail,status='deleted')
             product.delete()
             return Response({'msg': 'The product has been deleted successfully.'},status=status.HTTP_204_NO_CONTENT)
         except:
@@ -154,4 +178,47 @@ class SalesByVendor(APIView):
             # import pdb; pdb.set_trace()
             sales.append({'vendor' :vendor, 'sales' :sales_for_vendor})
         return Response(sales,status=status.HTTP_200_OK)
-        
+
+
+
+class Top10Products(APIView):
+    def get(self, request):
+        sales_for_all_products =[]
+        for product in Product.objects.all():
+            items = OrderItem.objects.filter(product=product)
+            sales_for_product = sum(item.product.price for item in items)
+            if sales_for_product == 0:
+                continue
+            sales_for_all_products.append({'product': ProductSerializer(product).data, 'sales':sales_for_product})
+        sales_for_all_products = sorted(sales_for_all_products, key=lambda x: x['sales'], reverse=True)
+        # import pdb; pdb.set_trace()
+        return Response(sales_for_all_products,status=status.HTTP_200_OK)
+
+class Top10ProductsForMonth(APIView):
+    def get(self, request):
+        sales_for_all_products =[]
+        for product in Product.objects.all():
+            items = OrderItem.objects.filter().filter(product=product)
+            sales_for_product = sum(item.product.price for item in items)
+            if sales_for_product == 0:
+                continue
+            sales_for_all_products.append({'product': ProductSerializer(product).data, 'sales':sales_for_product})
+        sales_for_all_products = sorted(sales_for_all_products, key=lambda x: x['sales'], reverse=True)
+        # import pdb; pdb.set_trace()
+        return Response(sales_for_all_products,status=status.HTTP_200_OK)
+
+class Top10Vendors(APIView):
+    def get(self, request):
+        sales =[]
+        vendors = []
+        for product in Product.objects.all():
+            vendors.append(product.vendor)
+        vendors = set(vendors)
+        for vendor in vendors:
+            items = OrderItem.objects.filter(product__vendor= vendor)
+            sales_for_vendor = sum(item.quantity * item.product.price for item in items)
+            # import pdb; pdb.set_trace()
+            sales.append({'vendor' :vendor, 'sales' :sales_for_vendor})
+        sales= sorted(sales,key=lambda x:x['sales'],reverse=True)
+        return Response(sales,status=status.HTTP_200_OK)
+            

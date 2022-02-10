@@ -2,13 +2,10 @@ from django.db import models
 from PIL import Image
 from io import BytesIO
 from django.core.files import File
+from jsonfield import JSONField
+from django.contrib.auth.models import User
 
 
-class Vendor(models.Model):
-    name = models.CharField(max_length=255, unique=True, primary_key=True)
-    def __str__(self):
-        return self.name
-    
 class Category(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True,null=True)
@@ -37,7 +34,6 @@ class Product(models.Model):
     description = models.TextField(blank=True, null=True)
     price = models.FloatField()
     vendor = models.CharField(max_length=255, default="vendor1")
-    # vendor = models.ForeignKey(vendor, related_name='vendor', on_delete=models.CASCADE)
     quantity_available = models.IntegerField(default=1)
     status = models.CharField(max_length=255,choices=STATUS_CHOICES, default='available')
     image = models.ImageField(upload_to='uploads/', blank=True, null=True)
@@ -88,7 +84,7 @@ class Product(models.Model):
             obj = Product.objects.get(id=self.id)
         except Product.DoesNotExist:
             return
-        if self.image and obj.image and self.image and obj.image != self.image:
+        if obj.image and self.image and obj.image != self.image:
             storage, path = obj.image.storage, obj.image.path
             obj.image.delete()
             storage.delete(path)
@@ -108,3 +104,14 @@ class Product(models.Model):
         # object is possibly being updated, if so, clean up.
         self.remove_on_image_update()
         return super(Product, self).save(*args, **kwargs)
+
+
+
+class ProductChangesLog(models.Model):
+    differences = models.JSONField(null=True, blank=True)
+    old_product = models.JSONField()
+    admin = models.ForeignKey(User, related_name="editor", on_delete=models.SET_NULL, null=True, blank=True)
+    image = models.ImageField(upload_to='uploads/', blank=True, null=True)
+    thumbnail = models.ImageField(upload_to='uploads/', blank=True, null=True)
+    status= models.CharField(max_length=255,choices=[('deleted','deleted'),('updated','updated')], default='updated')
+    date_added = models.DateTimeField(auto_now=True)
