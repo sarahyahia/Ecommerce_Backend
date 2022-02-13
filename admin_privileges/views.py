@@ -4,12 +4,13 @@ from rest_framework.views import APIView
 from product.models import Product, Category, ProductChangesLog
 from product.serializers import ProductSerializer
 from cart.models import Order, OrderItem
-from .serializers import CategorySerializer
+from .serializers import CategorySerializer, ProductChangesLogSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from django.forms.models import model_to_dict
 import json
-
+from django.utils.timezone import now
+import datetime
 
 
 # to control products 
@@ -192,20 +193,21 @@ class Top10Products(APIView):
             sales_for_all_products.append({'product': ProductSerializer(product).data, 'sales':sales_for_product})
         sales_for_all_products = sorted(sales_for_all_products, key=lambda x: x['sales'], reverse=True)
         # import pdb; pdb.set_trace()
-        return Response(sales_for_all_products,status=status.HTTP_200_OK)
+        return Response(sales_for_all_products[:10],status=status.HTTP_200_OK)
 
 class Top10ProductsForMonth(APIView):
     def get(self, request):
         sales_for_all_products =[]
         for product in Product.objects.all():
-            items = OrderItem.objects.filter().filter(product=product)
+            # import pdb; pdb.set_trace()
+            items = OrderItem.objects.filter(created_at__month=datetime.date.today().month).filter(product=product)
             sales_for_product = sum(item.product.price for item in items)
             if sales_for_product == 0:
                 continue
             sales_for_all_products.append({'product': ProductSerializer(product).data, 'sales':sales_for_product})
         sales_for_all_products = sorted(sales_for_all_products, key=lambda x: x['sales'], reverse=True)
         # import pdb; pdb.set_trace()
-        return Response(sales_for_all_products,status=status.HTTP_200_OK)
+        return Response(sales_for_all_products[:10],status=status.HTTP_200_OK)
 
 class Top10Vendors(APIView):
     def get(self, request):
@@ -217,8 +219,35 @@ class Top10Vendors(APIView):
         for vendor in vendors:
             items = OrderItem.objects.filter(product__vendor= vendor)
             sales_for_vendor = sum(item.quantity * item.product.price for item in items)
+            if sales_for_vendor == 0:
+                continue
             # import pdb; pdb.set_trace()
             sales.append({'vendor' :vendor, 'sales' :sales_for_vendor})
         sales= sorted(sales,key=lambda x:x['sales'],reverse=True)
-        return Response(sales,status=status.HTTP_200_OK)
+        return Response(sales[:10],status=status.HTTP_200_OK)
+
+
+class Top10VendorsForMonth(APIView):
+    def get(self, request):
+        sales =[]
+        vendors = []
+        for product in Product.objects.all():
+            vendors.append(product.vendor)
+        vendors = set(vendors)
+        for vendor in vendors:
+            items = OrderItem.objects.filter(created_at__month=datetime.date.today().month).filter(product__vendor= vendor)
+            sales_for_vendor = sum(item.quantity * item.product.price for item in items)
+            if sales_for_vendor == 0:
+                continue
+            # import pdb; pdb.set_trace()
+            sales.append({'vendor' :vendor, 'sales' :sales_for_vendor})
+        sales= sorted(sales,key=lambda x:x['sales'],reverse=True)
+        return Response(sales[:10],status=status.HTTP_200_OK)
+    
+
+class ProductChangesLogList(APIView):
+    def get(self, request):
+        product_changes_log = ProductChangesLog.objects.all()
+        serializer = ProductChangesLogSerializer(product_changes_log, many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
             

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from product.models import Category
+from product.models import Category, ProductChangesLog
 
 class CategorySerializer(serializers.ModelSerializer):
 
@@ -13,3 +13,14 @@ class CategorySerializer(serializers.ModelSerializer):
             'description',
         )
 
+class ProductChangesLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductChangesLog
+        fields = (
+            'old_product',
+            'differences',
+            'admin',
+            'date_added',
+            'status',
+            'image',
+        )

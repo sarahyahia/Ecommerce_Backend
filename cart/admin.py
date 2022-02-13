@@ -8,7 +8,7 @@ class OrderAdmin(admin.ModelAdmin):
 
 
 class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ['product','order', 'quantity']
+    list_display = ['product','order', 'quantity','created_at']
     search_fields = ( 'product',)
 
 
