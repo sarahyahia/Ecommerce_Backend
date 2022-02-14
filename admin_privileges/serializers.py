@@ -1,6 +1,14 @@
 from rest_framework import serializers
 
 from product.models import Category, ProductChangesLog
+from django.contrib.auth.models import User
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('username', )
+
 
 class CategorySerializer(serializers.ModelSerializer):
 
@@ -14,9 +22,11 @@ class CategorySerializer(serializers.ModelSerializer):
         )
 
 class ProductChangesLogSerializer(serializers.ModelSerializer):
+    admin = UserSerializer()
     class Meta:
         model = ProductChangesLog
         fields = (
+            'id',
             'old_product',
             'differences',
             'admin',

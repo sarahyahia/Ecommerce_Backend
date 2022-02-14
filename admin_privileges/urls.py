@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import AddProductView, EditProductView, DeleteProductView, AddCategoryView, EditCategoryView, DeleteCategoryView,SalesByCategory, SalesByVendor, Top10Products, Top10ProductsForMonth, Top10Vendors, Top10VendorsForMonth, ProductChangesLogList
+from .views import AddProductView, EditProductView, DeleteProductView, AddCategoryView, EditCategoryView, DeleteCategoryView,SalesByCategory, SalesByVendor, Top10Products, Top10ProductsForMonth, Top10Vendors, Top10VendorsForMonth, ProductChangesLogList, DeleteProductChangesLogView
 
 urlpatterns = [
     path('add-product', AddProductView.as_view()),
@@ -19,4 +19,5 @@ urlpatterns = [
     path('top10vendors/month', Top10VendorsForMonth.as_view()),
     
     path('products-changes-log', ProductChangesLogList.as_view()),
+    path('products-changes-log/delete/<int:pk>', DeleteProductChangesLogView.as_view()),
 ]

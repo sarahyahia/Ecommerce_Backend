@@ -12,6 +12,7 @@ django-cors-headers = "*"
 pyjwt = "*"
 pillow = "*"
 jsonfield = "*"
+django-environ = "*"
 
 [dev-packages]
 

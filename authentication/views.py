@@ -47,7 +47,8 @@ class LoginView(GenericAPIView):
         password = data.get('password', '')
         try:
             user = User.objects.get(username=username)
-            # Token.objects.create(user= user)
+            if not user.auth_token.key:
+                Token.objects.create(user= user)
         except Exception as e:
             return Response({'error': 'User not found', 'errors': str(e)}, status=status.HTTP_404_NOT_FOUND)
         if not user.is_active:
@@ -73,7 +74,7 @@ class LoginView(GenericAPIView):
 class LogoutView(GenericAPIView):
     def get(self, request, format=None):
         #delete the token to force a login
-        # request.user.auth_token.delete() 
+        request.user.auth_token.delete() 
         
         return Response(data={
             'success': True,

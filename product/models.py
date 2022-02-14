@@ -4,6 +4,7 @@ from io import BytesIO
 from django.core.files import File
 from jsonfield import JSONField
 from django.contrib.auth.models import User
+from django.utils.timezone import now
 
 
 class Category(models.Model):
@@ -39,7 +40,7 @@ class Product(models.Model):
     image = models.ImageField(upload_to='uploads/', blank=True, null=True)
     thumbnail = models.ImageField(upload_to='uploads/', blank=True, null=True)
     slug = models.SlugField()
-    date_added = models.DateTimeField(auto_now_add=True)
+    date_added = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ('-date_added',)
@@ -84,10 +85,10 @@ class Product(models.Model):
             obj = Product.objects.get(id=self.id)
         except Product.DoesNotExist:
             return
-        if obj.image and self.image and obj.image != self.image:
-            storage, path = obj.image.storage, obj.image.path
-            obj.image.delete()
-            storage.delete(path)
+        # if obj.image and self.image and obj.image != self.image:
+        #     storage, path = obj.image.storage, obj.image.path
+        #     obj.image.delete()
+        #     storage.delete(path)
             
 
     def delete(self, *args, **kwargs):
@@ -114,4 +115,4 @@ class ProductChangesLog(models.Model):
     image = models.ImageField(upload_to='uploads/', blank=True, null=True)
     thumbnail = models.ImageField(upload_to='uploads/', blank=True, null=True)
     status= models.CharField(max_length=255,choices=[('deleted','deleted'),('updated','updated')], default='updated')
-    date_added = models.DateTimeField(auto_now=True)
+    date_added = models.DateTimeField(default=now)
