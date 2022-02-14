@@ -47,7 +47,7 @@ class LoginView(GenericAPIView):
         password = data.get('password', '')
         try:
             user = User.objects.get(username=username)
-            if not user.auth_token.key:
+            if not(hasattr(user, 'auth_token')) :
                 Token.objects.create(user= user)
         except Exception as e:
             return Response({'error': 'User not found', 'errors': str(e)}, status=status.HTTP_404_NOT_FOUND)
