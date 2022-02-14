@@ -13,6 +13,7 @@ pyjwt = "*"
 pillow = "*"
 jsonfield = "*"
 django-environ = "*"
+djangorestframework-simplejwt = "*"
 
 [dev-packages]
 
