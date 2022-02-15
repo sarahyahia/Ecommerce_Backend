@@ -44,8 +44,8 @@ class EditProductView(APIView):
             product_dict = model_to_dict(product)
             product_dict['category_id'] = product_dict.pop('category')
             old_product = Product(**product_dict)
-            image = product_dict['image']
-            thumbnail = product_dict['thumbnail']
+            image = product.image
+            thumbnail = product.thumbnail
             Product_fields = [field.name for field in Product._meta.get_fields()]
             serializer = ProductSerializer(product, data=request.data)
             if serializer.is_valid():
@@ -194,6 +194,7 @@ class SalesByVendor(APIView):
 
 
 class Top10Products(APIView):
+    authentication_classes = []
     def get(self, request):
         sales_for_all_products =[]
         for product in Product.objects.all():
@@ -207,7 +208,7 @@ class Top10Products(APIView):
         return Response(sales_for_all_products[:10],status=status.HTTP_200_OK)
 
 class Top10ProductsForMonth(APIView):
-    # permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminUser]
     def get(self, request):
         sales_for_all_products =[]
         for product in Product.objects.all():

@@ -10,13 +10,26 @@ import jwt
 from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
 from rest_framework import status, authentication, permissions
+# from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
 
+
+
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    # import pdb; pdb.set_trace()
+    print(dir(refresh))
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
 
 
 
 
 
 class RegisterView(GenericAPIView):
+    authentication_classes = []
     serializer_class = UserSerializer
 
     def post(self, request):
@@ -39,6 +52,7 @@ class RegisterView(GenericAPIView):
 
 
 class LoginView(GenericAPIView):
+    authentication_classes = []
     serializer_class = LoginSerializer
 
     def post(self, request):
@@ -47,8 +61,9 @@ class LoginView(GenericAPIView):
         password = data.get('password', '')
         try:
             user = User.objects.get(username=username)
-            if not(hasattr(user, 'auth_token')) :
-                Token.objects.create(user= user)
+            token = get_tokens_for_user(user)
+            # if not(hasattr(user, 'auth_token')) :
+            #     Token.objects.create(user= user)
         except Exception as e:
             return Response({'error': 'User not found', 'errors': str(e)}, status=status.HTTP_404_NOT_FOUND)
         if not user.is_active:
@@ -59,7 +74,8 @@ class LoginView(GenericAPIView):
             serializer = UserSerializer(user)
             data = {
                 'user': serializer.data, 
-                "token":user.auth_token.key, 
+                'jwt_token': token,
+                # "token":user.auth_token.key, 
                 'msg':'you have logged in successfully'
             }
 
@@ -72,14 +88,20 @@ class LoginView(GenericAPIView):
 
 
 class LogoutView(GenericAPIView):
+    authentication_classes = []
     def get(self, request, format=None):
         #delete the token to force a login
-        request.user.auth_token.delete() 
-        
-        return Response(data={
-            'success': True,
-            'msg': 'logged out successfully'
-        }, status=status.HTTP_200_OK)
+        # request.user.auth_token.delete() 
+        # import pdb; pdb.set_trace()
+        try: 
+            token = RefreshToken(request.headers['Authorization'].split(' ',1)[1])
+            token.blacklist()
+            return Response(data={
+                'success': True,
+                'msg': 'logged out successfully'
+            }, status=status.HTTP_200_OK)
+        except:
+            return Response('invalid token or blacklisted',status=status.HTTP_401_UNAUTHORIZED)
 
 
 class DeactivateView(GenericAPIView):

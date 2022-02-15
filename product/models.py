@@ -117,4 +117,5 @@ class ProductChangesLog(models.Model):
     status= models.CharField(max_length=255,choices=[('deleted','deleted'),('updated','updated')], default='updated')
     date_added = models.DateTimeField(default=now)
     
-    
+    class Meta:
+        ordering = ['-id',]

@@ -10,16 +10,18 @@ from django.db.models import Q
 from django_filters import rest_framework as filters
 from .filters import ProductFilter
 from rest_framework import generics
-
+from rest_framework.permissions import AllowAny
 
 
 
 class StandardResultsSetPagination(PageNumberPagination):
+    
     page_size = 5
     page_size_query_param = 'page_size'
     max_page_size = 100
 
 class LatestProductsList(APIView):
+    authentication_classes = []
     def get(self, request, format=None):
         products = Product.objects.all()[0:6]
         serializer = ProductSerializer(products, many=True)
@@ -27,6 +29,7 @@ class LatestProductsList(APIView):
 
 
 class ProductDetail(APIView):
+    authentication_classes = []
     def get_object(self, category_slug, product_slug):
         try:
             return Product.objects.filter(category__slug=category_slug).get(slug=product_slug)
@@ -40,6 +43,7 @@ class ProductDetail(APIView):
 
 
 class ProductsList(APIView):
+    authentication_classes = []
     pagination_class = PageNumberPagination
     def get(self, request, format=None):
         productsList= Product.objects.all().order_by('slug')
@@ -52,6 +56,7 @@ class ProductsList(APIView):
 
 
 class CategoryDetail(APIView):
+    authentication_classes = []
     def get_object(self, category_slug):
         try:
             return Category.objects.get(slug=category_slug)
@@ -65,6 +70,7 @@ class CategoryDetail(APIView):
 
 
 class CategoryList(APIView):
+    authentication_classes = []
     def get(self, request):
         categories = Category.objects.all()
         serializer= CategorySerializer(categories, many=True)
@@ -84,6 +90,7 @@ def search(request):
 
 
 class ProductFilterList(generics.ListAPIView):
+    authentication_classes = []
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     filter_backends = [filters.DjangoFilterBackend]

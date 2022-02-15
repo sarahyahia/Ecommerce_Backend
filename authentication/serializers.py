@@ -1,5 +1,12 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+# from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+# from rest_framework_simplejwt.views import TokenObtainPairView
+
+
+
+
+
 
 
 # User Serializer
@@ -29,7 +36,16 @@ class LoginSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         max_length=65, min_length=8, write_only=True)
     username = serializers.CharField(max_length=255, min_length=2)
+    
+    # @classmethod
+    # def get_token(cls, user):
+    #     token = super().get_token(user)
 
+    #     # Add custom claims
+    #     # token['username'] = user.username
+    #     # ...
+
+    #     return token
     class Meta:
         model = User
         fields = ['username', 'password']

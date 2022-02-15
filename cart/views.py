@@ -1,4 +1,4 @@
-# import stripe
+import stripe
 
 from django.conf import settings
 from rest_framework import status, authentication, permissions
@@ -17,7 +17,7 @@ def checkout(request):
     serializer = OrderSerializer(data=request.data)
 
     if serializer.is_valid():
-        # stripe.api_key = settings.STRIPE_SECRET_KEY
+        stripe.api_key = settings.STRIPE_SECRET_KEY
         paid_amount = sum(item.get('quantity') * item.get('product').price for item in serializer.validated_data['items'])
         for item in serializer.validated_data['items']:
             product = item.get('product')
@@ -27,12 +27,12 @@ def checkout(request):
             # import pdb; pdb.set_trace()
             product.save()
         try:
-            # charge = stripe.Charge.create(
-            #     amount=int(paid_amount * 100),
-            #     currency='USD',
-            #     description='Charge from Djackets',
-            #     source=serializer.validated_data['stripe_token']
-            # )
+            charge = stripe.Charge.create(
+                amount=int(paid_amount * 100),
+                currency='USD',
+                description='Charge from Djackets',
+                source=serializer.validated_data['stripe_token']
+            )
 
             serializer.save(user=request.user, paid_amount=paid_amount)
 
@@ -43,7 +43,6 @@ def checkout(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class OrdersList(APIView):
-    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, format=None):

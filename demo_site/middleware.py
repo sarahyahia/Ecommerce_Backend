@@ -7,5 +7,5 @@ class TokenAuthMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
-        print(request.user)
+        # print(request.user)
         return self.get_response(request)
