@@ -10,12 +10,13 @@ from .models import Order, OrderItem
 from product.models import Product
 from .serializers import OrderSerializer, MyOrderSerializer
 
+
+
 @api_view(['POST'])
-@authentication_classes([authentication.TokenAuthentication])
 @permission_classes([permissions.IsAuthenticated])
 def checkout(request):
     serializer = OrderSerializer(data=request.data)
-
+    print(request.data)
     if serializer.is_valid():
         stripe.api_key = settings.STRIPE_SECRET_KEY
         paid_amount = sum(item.get('quantity') * item.get('product').price for item in serializer.validated_data['items'])
@@ -27,6 +28,7 @@ def checkout(request):
             # import pdb; pdb.set_trace()
             product.save()
         try:
+            # import pdb; pdb.set_trace()
             charge = stripe.Charge.create(
                 amount=int(paid_amount * 100),
                 currency='USD',
