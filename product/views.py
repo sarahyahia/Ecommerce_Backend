@@ -11,7 +11,7 @@ from django_filters import rest_framework as filters
 from .filters import ProductFilter
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
-
+from profanity_filter import ProfanityFilter
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -79,8 +79,11 @@ class CategoryList(APIView):
 @api_view(['POST'])
 def search(request):
     query = request.data.get('query', '')
-
-    if query:
+    pf = ProfanityFilter()
+    query_is_profane=pf.is_profane(query)
+    if query_is_profane:
+        return Response({'error':pf.censor(query)})
+    elif query:
         products = Product.objects.filter(Q(title__icontains=query) | Q(description__icontains=query) | Q(category__title__icontains=query))
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
@@ -95,4 +98,11 @@ class ProductFilterList(generics.ListAPIView):
     serializer_class = ProductSerializer
     filter_backends = [filters.DjangoFilterBackend]
     filterset_class = ProductFilter
+    def test_func(self,request):
+        pf = ProfanityFilter()
+        title_is_profane=pf.is_profane(request.data.get('title'))
+        vendor_is_profane = pf.is_profane(request.data.get('vendor'))
+        if title_is_profane or vendor_is_profane:
+            return False
+        return True
     

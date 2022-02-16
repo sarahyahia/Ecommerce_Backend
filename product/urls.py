@@ -4,8 +4,8 @@ from .views import LatestProductsList, ProductDetail, CategoryDetail, ProductsLi
 
 
 urlpatterns = [
+    path('products/search/query/', search),
     path('products/search/', ProductFilterList.as_view()),
-    path('products/search/', search),
     path('latestproduct/', LatestProductsList.as_view()),
     path('products/<slug:category_slug>/<slug:product_slug>/', ProductDetail.as_view()),
     path('products/', ProductsList.as_view()),

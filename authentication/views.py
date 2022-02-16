@@ -12,10 +12,14 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status, authentication, permissions
 # from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
+from django.utils.timezone import now
+
 
 
 
 def get_tokens_for_user(user):
+    BlacklistedToken.objects.filter(token__expires_at__lte=now()).delete()
     refresh = RefreshToken.for_user(user)
     return {
         'refresh': str(refresh),

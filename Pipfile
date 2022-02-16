@@ -15,6 +15,7 @@ jsonfield = "*"
 django-environ = "*"
 djangorestframework-simplejwt = "*"
 stripe = "*"
+profanity-filter = "*"
 
 [dev-packages]
 
